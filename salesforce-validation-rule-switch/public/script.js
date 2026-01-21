@@ -1,8 +1,8 @@
 function login() {
   const clientId =
     "3MVG9HtWXcDGV.nHI0zRBlvfsubgRjN5dn43lAdTzUhA492G9g0Gu3X60EsDM0I3sEiSd3Gl.Kq.Ww3EGRvB2";
-  const redirectUri = "http://localhost:3000/oauth/callback";
-
+  const redirectUri =
+  window.location.origin + "/oauth/callback";
   const url =
     `https://login.salesforce.com/services/oauth2/authorize` +
     `?response_type=code` +
