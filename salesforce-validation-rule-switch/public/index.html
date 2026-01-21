@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Salesforce Validation Rule Switch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Salesforce Validation Rule Manager</h2>
+
+    <button class="primary" onclick="login()">Login to Salesforce</button>
+
+    <div class="actions">
+      <button onclick="getRules()">Get Validation Rules</button>
+      <button onclick="enableAll()">Enable All</button>
+      <button onclick="disableAll()">Disable All</button>
+      <button class="deploy" onclick="deploy()">Deploy</button>
+    </div>
+
+    <div id="rules" class="rules"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
