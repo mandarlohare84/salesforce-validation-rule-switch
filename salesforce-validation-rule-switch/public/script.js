@@ -2,7 +2,8 @@ function login() {
   const clientId =
     "3MVG9HtWXcDGV.nHI0zRBlvfsubgRjN5dn43lAdTzUhA492G9g0Gu3X60EsDM0I3sEiSd3Gl.Kq.Ww3EGRvB2";
 
-  const redirectUri = window.location.origin + "/oauth/callback";
+  const redirectUri =
+    "https://salesforce-validation-rule-switch.onrender.com/oauth/callback";
 
   const url =
     "https://login.salesforce.com/services/oauth2/authorize" +
@@ -12,6 +13,7 @@ function login() {
 
   window.location.href = url;
 }
+
 let validationRules = [];
 
 async function getRules() {
