@@ -2,11 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("../public"));
+app.use(express.static(path.join(__dirname, "../public")));
 
 let accessToken = "";
 let instanceUrl = "";
@@ -39,10 +40,8 @@ app.get("/oauth/callback", async (req, res) => {
   }
 });
 
-
 app.get("/validation-rules", async (req, res) => {
   try {
-
     const query = `
       SELECT Id, ValidationName, Active
       FROM ValidationRule
@@ -58,7 +57,6 @@ app.get("/validation-rules", async (req, res) => {
     );
 
     const rules = result.data.records;
-
 
     for (let rule of rules) {
       const metaResponse = await axios.get(
@@ -78,17 +76,11 @@ app.get("/validation-rules", async (req, res) => {
   }
 });
 
-
 app.post("/deploy", async (req, res) => {
   try {
     const rules = req.body;
 
-    console.log("Deploy called with rules:");
-    console.log(rules);
-
     for (let rule of rules) {
-      console.log(`Updating ${rule.ValidationName} -> ${rule.Active}`);
-
       await axios.patch(
         `${instanceUrl}/services/data/v59.0/tooling/sobjects/ValidationRule/${rule.Id}`,
         {
@@ -114,5 +106,6 @@ app.post("/deploy", async (req, res) => {
 });
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server running on http://localhost:${process.env.PORT}`);
+  console.log(`Server running on port ${process.env.PORT}`);
 });
+
