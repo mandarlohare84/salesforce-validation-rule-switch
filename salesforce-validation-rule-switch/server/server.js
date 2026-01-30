@@ -13,14 +13,27 @@ app.use(express.static(path.join(__dirname, "../public")));
 let accessToken = "";
 let instanceUrl = "";
 
-/* ===============================
-   ROOT (optional health check)
+/* ==============================
+   ROOT – HEALTH CHECK
 ================================ */
 app.get("/", (req, res) => {
   res.send("Salesforce Validation Rule Switch Server is running ✅");
 });
 
-/* ===============================
+/* ==============================
+   OAUTH LOGIN REDIRECT
+================================ */
+app.get("/login", (req, res) => {
+  const authUrl =
+    `https://login.salesforce.com/services/oauth2/authorize` +
+    `?response_type=code` +
+    `&client_id=${process.env.CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.CALLBACK_URL)}`;
+
+  res.redirect(authUrl);
+});
+
+/* ==============================
    OAUTH CALLBACK (FIXED)
 ================================ */
 app.get("/oauth/callback", async (req, res) => {
@@ -40,7 +53,7 @@ app.get("/oauth/callback", async (req, res) => {
           client_id: process.env.CLIENT_ID,
           client_secret: process.env.CLIENT_SECRET,
           redirect_uri: process.env.CALLBACK_URL,
-          code
+          code: code
         }
       }
     );
@@ -50,8 +63,8 @@ app.get("/oauth/callback", async (req, res) => {
 
     res.send(`
       <h2>Salesforce Authorization Successful ✅</h2>
-      <p>You can now close this tab.</p>
-      <p>Access Token stored on server.</p>
+      <p>Access Token stored on server</p>
+      <p>You may now close this tab.</p>
     `);
 
   } catch (err) {
@@ -60,7 +73,7 @@ app.get("/oauth/callback", async (req, res) => {
   }
 });
 
-/* ===============================
+/* ==============================
    FETCH VALIDATION RULES
 ================================ */
 app.get("/validation-rules", async (req, res) => {
@@ -86,14 +99,13 @@ app.get("/validation-rules", async (req, res) => {
     const rules = result.data.records;
 
     for (let rule of rules) {
-      const metaResponse = await axios.get(
+      const meta = await axios.get(
         `${instanceUrl}/services/data/v59.0/tooling/sobjects/ValidationRule/${rule.Id}`,
         {
           headers: { Authorization: `Bearer ${accessToken}` }
         }
       );
-
-      rule.Metadata = metaResponse.data.Metadata;
+      rule.Metadata = meta.data.Metadata;
     }
 
     res.json(rules);
@@ -104,7 +116,7 @@ app.get("/validation-rules", async (req, res) => {
   }
 });
 
-/* ===============================
+/* ==============================
    DEPLOY / TOGGLE RULES
 ================================ */
 app.post("/deploy", async (req, res) => {
@@ -141,11 +153,10 @@ app.post("/deploy", async (req, res) => {
   }
 });
 
-/* ===============================
+/* ==============================
    START SERVER
 ================================ */
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
