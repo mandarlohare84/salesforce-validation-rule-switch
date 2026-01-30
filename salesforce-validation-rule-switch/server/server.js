@@ -22,11 +22,11 @@ app.get("/", (req, res) => {
 
 /* ================= LOGIN (REDIRECT TO SALESFORCE) ================= */
 app.get("/login", (req, res) => {
-  const authUrl =
-    "https://login.salesforce.com/services/oauth2/authorize" +
-    "?response_type=code" +
-    `&client_id=${process.env.CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.CALLBACK_URL)}`;
+ const authUrl =
+  "https://login.salesforce.com/services/oauth2/authorize" +
+  "?response_type=code" +
+  `&client_id=${process.env.CLIENT_ID}` +
+  `&redirect_uri=${encodeURIComponent(process.env.CALLBACK_URL)}`;
 
   res.redirect(authUrl);
 });
