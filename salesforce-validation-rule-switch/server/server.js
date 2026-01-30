@@ -6,36 +6,32 @@ const path = require("path");
 
 const app = express();
 
+/* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
+/* ================= GLOBAL STATE ================= */
 let accessToken = "";
 let instanceUrl = "";
 
-/* ==============================
-   ROOT – HEALTH CHECK
-================================ */
+/* ================= ROOT / HEALTH ================= */
 app.get("/", (req, res) => {
   res.send("Salesforce Validation Rule Switch Server is running ✅");
 });
 
-/* ==============================
-   OAUTH LOGIN REDIRECT
-================================ */
+/* ================= LOGIN (REDIRECT TO SALESFORCE) ================= */
 app.get("/login", (req, res) => {
   const authUrl =
-    `https://login.salesforce.com/services/oauth2/authorize` +
-    `?response_type=code` +
+    "https://login.salesforce.com/services/oauth2/authorize" +
+    "?response_type=code" +
     `&client_id=${process.env.CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(process.env.CALLBACK_URL)}`;
 
   res.redirect(authUrl);
 });
 
-/* ==============================
-   OAUTH CALLBACK (FIXED)
-================================ */
+/* ================= OAUTH CALLBACK (FIXED) ================= */
 app.get("/oauth/callback", async (req, res) => {
   const code = req.query.code;
 
@@ -53,8 +49,8 @@ app.get("/oauth/callback", async (req, res) => {
           client_id: process.env.CLIENT_ID,
           client_secret: process.env.CLIENT_SECRET,
           redirect_uri: process.env.CALLBACK_URL,
-          code: code
-        }
+          code: code,
+        },
       }
     );
 
@@ -66,16 +62,13 @@ app.get("/oauth/callback", async (req, res) => {
       <p>Access Token stored on server</p>
       <p>You may now close this tab.</p>
     `);
-
   } catch (err) {
     console.error("OAuth Error:", err.response?.data || err.message);
-    res.status(500).send("OAuth failed ❌");
+    res.status(500).send("OAuth Failed ❌");
   }
 });
 
-/* ==============================
-   FETCH VALIDATION RULES
-================================ */
+/* ================= FETCH VALIDATION RULES ================= */
 app.get("/validation-rules", async (req, res) => {
   if (!accessToken || !instanceUrl) {
     return res.status(401).send("Not authorized ❌");
@@ -92,7 +85,7 @@ app.get("/validation-rules", async (req, res) => {
       `${instanceUrl}/services/data/v59.0/tooling/query`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-        params: { q: query }
+        params: { q: query },
       }
     );
 
@@ -102,23 +95,21 @@ app.get("/validation-rules", async (req, res) => {
       const meta = await axios.get(
         `${instanceUrl}/services/data/v59.0/tooling/sobjects/ValidationRule/${rule.Id}`,
         {
-          headers: { Authorization: `Bearer ${accessToken}` }
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
+
       rule.Metadata = meta.data.Metadata;
     }
 
     res.json(rules);
-
   } catch (err) {
     console.error("FETCH ERROR:", err.response?.data || err.message);
     res.status(500).send("Failed to fetch validation rules ❌");
   }
 });
 
-/* ==============================
-   DEPLOY / TOGGLE RULES
-================================ */
+/* ================= TOGGLE / DEPLOY RULES ================= */
 app.post("/deploy", async (req, res) => {
   if (!accessToken || !instanceUrl) {
     return res.status(401).send("Not authorized ❌");
@@ -133,29 +124,26 @@ app.post("/deploy", async (req, res) => {
         {
           Metadata: {
             ...rule.Metadata,
-            active: rule.Active
-          }
+            active: rule.Active,
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
     }
 
     res.send("Deployment successful ✅");
-
   } catch (err) {
     console.error("DEPLOY ERROR:", err.response?.data || err.message);
-    res.status(500).send("Deployment failed ❌");
+    res.status(500).send("Deployment Failed ❌");
   }
 });
 
-/* ==============================
-   START SERVER
-================================ */
+/* ================= START SERVER ================= */
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
