@@ -15,6 +15,7 @@ function login() {
 }
 
 
+
 let validationRules = [];
 
 async function getRules() {
